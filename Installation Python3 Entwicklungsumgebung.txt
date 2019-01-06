@@ -1,0 +1,202 @@
+Installation Python3 Entwicklungsumgebung.txt
+
+div. Notizen und kurze Wegleitung für steinigen Weg der Entwicklung in Python...
+
+Stefan Braun / sbraun@datacomm.ch
+
+[Warnung: Text ist "work in progress"]
+==>to do: sobald Weg gefunden ist, diesen sauber dokumentieren!!!
+
+-damit Entwicklersystem als Ganzes gesichert werden kann:
+=>Windows-Installation in VMware Workstation Player
+=>für performante Entwicklungsumgebung: virtuelle Maschine auf SSD-Partition speichern
+  (Risiko: grösserer "Flash-Wear-Out" der SSD...
+   =>Vermeidung vorzeitiger Verschleiss: im Gast-OS Defragmentierungs-Zeitplan deaktivieren,
+     zudem die SSD nicht vollständig füllen)
+
+
+Anpassung per 10.10.2018: Entwicklersystem: Win7 x86 (32Bit!!!)
+Dies ist der kleinste gemeinsame Nenner der Ziel-Plattformen,
+und gemäss diversen Quellen müssen somit portable EXE-Dateien direkt auf der Zielplattform erstellt werden!
+(PyInstaller: Python-Code wird mitsamt Python-Interpreter und allen notwendigen Python-Modulen zusammengepackt)
+
+=>darum Python 3 x32 (Anaconda3) als Root-Anaconda-Environment
+
+
+1) Installation Anaconda:
+https://www.anaconda.com/download/
+
+=>Installation "all users"
+=>Zu Beachten: Pfad ohne Leerzeichen: https://docs.anaconda.com/anaconda/faq#in-what-folder-should-i-install-anaconda-on-windows
+==>gewählt: C:\Anaconda3
+=>Installation ohne "Microsoft VSCode".
+
+
+2) ev: GitHub Desktop installieren
+https://desktop.github.com/
+https://central.github.com/deployments/desktop/desktop/latest/win32
+
+
+3) Git for Windows installieren
+(gemäss https://github.com/desktop/desktop/issues/3801
+können so externe Programme wie z.B. PyCharm Git-Funktionalität nutzen)
+https://gitforwindows.org/
+
+=>bei Installation: Notepad++ als Git-Standard-Editor konfigurieren.
+
+
+4) PyCharm installieren
+PyCharm Community Version wählen
+=>Achtung: Version "pycharm-community-2018.2.4" funktioniert gut,
+           neuere Versionen zeigen viele Fehlalarme bei Imports an...
+https://www.jetbrains.com/pycharm/download/#section=windows
+
+=>Desktop-Link "64-bit launcher"
+=>.py File Association erstellen
+=>"Download and install JRE x86 by JetBrains" (irgendwo stand diese Empfehlung...)
+
+
+5) neues Projekt "radioline_serialtest"
+-"Pycharm" starten, "create new "project",
+Name/Ablageort normalerweise im Benutzerverzeichnis: "C:\Users\Asenta\PycharmProjects\radioline_serialtest"
+(neues Conda-Environment "radioline_serialtest" (Python 3.x) erstellen lassen,
+Option "Make available to all projects" nicht aktivieren)
+
+-"Pycharm" -> New Python package: "radioline_serialtest" ->ergibt Unterordner im Python-Projektordner
+
+=>es ist nicht vorgesehen, dass "pyast2sbc_il" Funktionalität zur Verfügung stellt,
+  darum nur Windows-Binaries und Sourcecode auf GitHub (kein PyPI-Paket)
+
+
+
+Zum Start der Programmierung alle Python-Packages im aktuellen Environment auf den aktuellen Stand bringen:
+-"Pycharm" beenden
+-"Anaconda Prompt" starten
+-conda Environment aktivieren: "activate radioline_serialtest"
+-conda selber aktualisieren: "conda update -n base conda"
+-das Anaconda-Metapaket aktualisieren: "conda install -c anaconda python"
+
+
+-"Pycharm" -> "Settings" -> "Project: radioline_serialtest" -> "Interpreter"
+  (für Veröffentlichung benötigt)
+  -> Package "twine" und "docutils" via Conda installieren (grünes "Conda"-Icon aktiv, dann "+")
+  -> Package "PyInstaller" ebenfalls in Pycharm via PyPI installieren (grünes "Conda"-Icon NICHT aktiv, dann "+")
+
+  (für Entwicklung benötigt)
+  -> Package "pyserial" via Conda installieren (grünes "Conda"-Icon aktiv, dann "+")
+     zur Vermeidung von Inkompatibilitäten installierte Version notieren
+     ("requirements.txt" pflegen;
+      Pycharm könnte dann die benötigten Abhängigkeiten nachinstallieren)
+
+  ==>ACHTUNG: manchmal sieht man in PyCharm, in "Anaconda Prompt" und "Anaconda Navigator"
+     jeweils mit den Paketmanagern "Conda" und "pip" unterschiedliche Paketversionen... Grund unbekannt.
+    (falls sich PyPI-Pakete im PyCharm-Projekt nicht anzeigen lassen:
+        "Anaconda Prompt" starten -> "activate radioline_serialtest", "pip install <<Python package>>")
+  ==>HINWEIS: bei SSL-Zertifikatsfehler das betroffene Package ebenfalls manuell ausserhalb von PyCharm installieren!
+
+
+-für grafische Benutzeroberfläche "PyQt5" verwenden
+-->Package "PyQt5" via PyPI installieren
+("Pycharm" -> "Settings" -> "Project: radioline_serialtest" -> "Interpreter", grünes "Conda"-Icon inaktiv, dann "+")
+ =>leider gibt es in Pycharm ein SSL-Zertifikatsfehler,
+ folglich Installation ausserhalb Pycharm:
+ -"Anaconda Prompt" starten
+ -conda Environment aktivieren: "activate radioline_serialtest"
+ -"pip install PyQt5"
+ =>"requirements.txt" pflegen
+
+=>"pyqt-tools" ist bei Anaconda-Installation überflüssig
+https://stackoverflow.com/questions/42090739/pyqt5-how-to-start-the-designer
+
+(Anwendung ist hier: "C:\Anaconda3\Library\bin\Designer.exe"
+und braucht nicht in jedem Conda-Environment erneut installiert zu werden)
+
+==>in PyCharm als externes Tool ergänzen:
+"File"->"Settings..."
+"Tools"->"External Tools"->"Add"
+Name: Qt Designer
+Arguments: C:\Anaconda3\Library\bin\designer.exe
+Working Directory: $ProjectFileDir$
+Option "Open console for tool output" deaktiviert
+
+
+
+=>beim Einfügen von Bildern müssen diese in eine Ressourcendatei eingebunden werden.
+=>die Ressourcendatei muss nach jeder Änderung in eine Python-Datei kompiliert werden,
+  damit deren Inhalte gefunden werden
+  (mittels "pyrcc5" in "Anaconda Prompt" nach Aktivierung des entsprechenden Environments)
+https://stackoverflow.com/questions/28536306/inserting-an-image-in-gui-using-qt-designer
+https://stackoverflow.com/questions/41301204/pyqt-importerror-no-module-named-resource-rc
+
+ -"Anaconda Prompt" starten
+ -conda Environment aktivieren: "activate radioline_serialtest"
+ -"cd C:\Users\Asenta\PycharmProjects\radioline_serialtest\radioline_serialtest\UI"
+ -"pyrcc5 -o ..\MainWindow_rc.py MainWindow.qrc"
+
+FIXME: Soll ich bei nächster PyQt-GUI eine Batchdatei erstellen, die die "*.ui"- und die Ressourcendateien kompiliert?
+aktuell kompilieren wir die vom "Qt Designer" generierte "*.ui"-Datei zur Laufzeit.
+=>Vorteil: schnelle Änderung von GUI möglich
+=>Nachteil: in PyCharm ist bei GUI-Objekten somit keine Code-Autovervollständigung möglich...
+
+
+Für exakte Duplizierung der Entwicklungsumgebung die Version aller genutzten Conda-Packages erfassen:
+(gemäss https://datascience.stackexchange.com/questions/24093/how-to-clone-python-working-environment-on-another-machine)
+-"Anaconda Prompt" starten
+-conda Environment aktivieren: "activate radioline_serialtest"
+"cd C:\Users\Asenta\PycharmProjects\radioline_serialtest"
+"conda env export > environment.yml" erzeugt Datei "environment.yml"
+=>Wiederherstellung klappe dann folgendermassen: "conda env create -f environment.yml" // dies habe ich noch nicht ausprobiert...
+
+
+
+7) Veröffentlichung Projekt:
+
+Vorbereitung: ev. folgende Dateien überarbeiten:
+.gitignore	// Unterordner ".idea" schliesse ich nicht aus git aus, vielleicht nützt es mal in Zukunft, wenn komplette Umgebung neu installiert werden muss
+CHANGES.txt
+LICENSE.txt
+MANIFEST.in	// Inhalt ist mir nicht mehr ganz klar... :-/
+README.md	// in "Pycharm" gibts guten "MarkDown"-Editor! Die gerenderte Ausgabe wird auf GitHub Projektwebseite veröffentlicht
+requirements.txt  // inkl. Versionsangaben von Hand pflegen, ergibt in GitHub den "dependency graph"
+                    https://help.github.com/articles/listing-the-packages-that-a-repository-depends-on/
+                    (Imports durchgehen, hier nachsehen: "Pycharm" -> "Settings" -> "Project: radioline_serialtest" -> "Interpreter",
+                    Teile von "environment.yml" kopieren, Aufbau dieser Datei siehe https://www.jetbrains.com/help/pycharm/managing-dependencies.html )
+
+
+in PyCharm:
+->Einstellungen ->VCS GitHub Account hinterlegen
+->VCS ->Import into Version Control ->Share Project on GitHub (NUR beim ersten Mal und falls es noch nicht existiert!)
+->VCS ->Git ->Commit (nach jeder Code-Änderung, dies beeinflusst nur lokales Repository)
+->VCS ->Git ->Push... (dies lädt die letzten Änderungen auf GitHub)
+
+
+
+Windows EXE-Datei erstellen :
+=>siehe Anleitung unter
+https://pyinstaller.readthedocs.io/en/stable/operating-mode.html#bundling-to-one-file
+-"Anaconda Prompt" starten
+-conda Environment aktivieren: "activate radioline_serialtest"
+-in Projektverzeichnis wechseln: "cd C:\Users\Asenta\PycharmProjects\radioline_serialtest"
+"pyinstaller --onedir --noconsole --name radioline_serialtest_v0.0.1_x86 --add-data "radioline_serialtest/UI/MainWindow.ui;UI" --add-data "radioline_serialtest/MainWindow_rc.py;."  radioline_serialtest\main.py"
+==>dies generiert ein Unterverzeichnis unter "..\dist",
+ dieses in ZIP-File packen und auf GitHub als Release veröffentlichen
+
+FIXME: Warum will es einfach nicht klappen mit Option "--onefile" anstelle "--onedir"?!?
+Einfache Projekte ohne diverse Daten-Files können zu einem einzelnen EXE-File gepackt werden.
+Bei der Ausführung wird der Inhalt in temporäres Verzeichnis extrahiert und der Python Interpreter ausgeführt.
+(zu beachten: auch wenn Python-Scripte in PyCharm fehlerfrei abgearbeitet werden,
+das Zusammenschnüren zu einem EXE-File birgt verschiedene Risiken...
+z.B. nicht aufgelöste Abhängigkeiten,
+oder z.B. falsches Encoding beim Textdatei-Handling im Konsolenprogramm, etc.
+http://python-notes.curiousefficiency.org/en/latest/python3/text_file_processing.html
+
+
+-vor Veröffentlichung:
+  -Testlauf der Anwendung.
+   (Sie könnte sich ausserhalb von PyCharm und/oder mit PyInstaller gepackt anders verhalten, z.B. fehlende Dateien)
+  -leider sporadisch Antivirus-Fehlalarme aufgrund Heuristik,
+   da kann man nicht viel machen... (Prüfung mittels https://www.virustotal.com sollte nicht zu viele Treffer ergeben)
+   =>Abhilfe 1): erzeugte EXE im Antivirenprogramm zu den Ausnahmen hinzufügen
+   =>Abhilfe 2): Beim Hersteller des EIGENEN Antivirenprogrammes erzeugte EXE als "false positive" melden
+
+
